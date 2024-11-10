@@ -1,20 +1,57 @@
 from flask import Flask, request, jsonify
 import logging
+from logging.handlers import TimedRotatingFileHandler
+import os
 from urllib.parse import urlparse
 import requests
 from recipe_scrapers import scrape_html
+from datetime import datetime
 
+# Create logs directory if it doesn't exist
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
+# Set up logging
 app = Flask(__name__)
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+
+# Add this to handle running behind a proxy
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# Console handler (for seeing logs in terminal)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(console_format)
+logger.addHandler(console_handler)
+
+# File handler (for logging to file with rotation)
+file_handler = TimedRotatingFileHandler(
+    filename='logs/recipe_api.log',
+    when='midnight',
+    interval=1,
+    backupCount=7,
+    encoding='utf-8'
+)
+file_handler.setLevel(logging.DEBUG)
+file_format = logging.Formatter(
+    '%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s'
+)
+file_handler.setFormatter(file_format)
+logger.addHandler(file_handler)
+
+# Add a health check endpoint
+@app.route('/')
+def health_check():
+    return jsonify({"status": "healthy", "message": "Recipe scraper API is running"}), 200
 
 @app.route('/scrape', methods=['POST'])
 def scrape_recipe():
     try:
-        logger.debug(f"Received request: {request.get_data(as_text=True)}")
+        request_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        logger.debug(f"[{request_time}] Received request: {request.get_data(as_text=True)}")
         logger.debug(f"Request headers: {dict(request.headers)}")
         
         # Parse JSON data
@@ -72,7 +109,26 @@ def scrape_recipe():
             logger.error(f"Error extracting core recipe data: {str(e)}")
             return jsonify({'error': 'Failed to extract core recipe data'}), 500
 
-       
+        # Optional methods (might not be available for all recipes)
+        # optional_methods = {
+        #     'ingredient_groups': scraper.ingredient_groups,
+        #     'instructions_list': scraper.instructions_list,
+        #     'nutrients': scraper.nutrients,
+        #     'canonical_url': scraper.canonical_url,
+        #     'equipment': scraper.equipment,
+        #     'cooking_method': scraper.cooking_method,
+        #     'keywords': scraper.keywords,
+        #     'dietary_restrictions': scraper.dietary_restrictions,
+        #     'links': scraper.links
+        # }
+
+        # for method_name, method in optional_methods.items():
+        #     try:
+        #         result = method()
+        #         if result:  # Only add if there's actual data
+        #             recipe_data[method_name] = result
+        #     except Exception as e:
+        #         logger.debug(f"Optional method {method_name} not available: {str(e)}")
                 
         logger.info("Successfully scraped recipe")
         return jsonify(recipe_data)
@@ -82,4 +138,6 @@ def scrape_recipe():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    port = int(os.environ.get('PORT', 8000))
+    logger.info(f"Starting Recipe Scraper API on port {port}")
+    app.run(host='0.0.0.0', port=port)
