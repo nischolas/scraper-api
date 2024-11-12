@@ -1,4 +1,4 @@
-# Recipe Scraper based on [hhursev/recipe_scrapers](https://github.com/hhursev/recipe-scrapers)
+# Flask app based on [hhursev/recipe_scrapers](https://github.com/hhursev/recipe-scrapers)
 
 Create virtual environment
 
