@@ -110,25 +110,25 @@ def scrape_recipe():
             return jsonify({'error': 'Failed to extract core recipe data'}), 500
 
         # Optional methods (might not be available for all recipes)
-        # optional_methods = {
-        #     'ingredient_groups': scraper.ingredient_groups,
-        #     'instructions_list': scraper.instructions_list,
-        #     'nutrients': scraper.nutrients,
-        #     'canonical_url': scraper.canonical_url,
-        #     'equipment': scraper.equipment,
-        #     'cooking_method': scraper.cooking_method,
-        #     'keywords': scraper.keywords,
-        #     'dietary_restrictions': scraper.dietary_restrictions,
-        #     'links': scraper.links
-        # }
+        optional_methods = {
+            'ingredient_groups': scraper.ingredient_groups,
+            'instructions_list': scraper.instructions_list,
+            'nutrients': scraper.nutrients,
+            'canonical_url': scraper.canonical_url,
+            'equipment': scraper.equipment,
+            'cooking_method': scraper.cooking_method,
+            'keywords': scraper.keywords,
+            'dietary_restrictions': scraper.dietary_restrictions,
+            'links': scraper.links
+        }
 
-        # for method_name, method in optional_methods.items():
-        #     try:
-        #         result = method()
-        #         if result:  # Only add if there's actual data
-        #             recipe_data[method_name] = result
-        #     except Exception as e:
-        #         logger.debug(f"Optional method {method_name} not available: {str(e)}")
+        for method_name, method in optional_methods.items():
+            try:
+                result = method()
+                if result:  # Only add if there's actual data
+                    recipe_data[method_name] = result
+            except Exception as e:
+                logger.debug(f"Optional method {method_name} not available: {str(e)}")
                 
         logger.info("Successfully scraped recipe")
         return jsonify(recipe_data)
