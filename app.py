@@ -76,13 +76,13 @@ def scrape_recipe():
         optional_methods = {
             'ingredient_groups': scraper.ingredient_groups,
             'instructions_list': scraper.instructions_list,
-            'nutrients': scraper.nutrients,
+            # 'nutrients': scraper.nutrients,
             'canonical_url': scraper.canonical_url,
-            'equipment': scraper.equipment,
-            'cooking_method': scraper.cooking_method,
+            # 'equipment': scraper.equipment,
+            # 'cooking_method': scraper.cooking_method,
             'keywords': scraper.keywords,
-            'dietary_restrictions': scraper.dietary_restrictions,
-            'links': scraper.links
+            # 'dietary_restrictions': scraper.dietary_restrictions,
+            # 'links': scraper.links
         }
 
         for method_name, method in optional_methods.items():
