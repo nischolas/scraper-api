@@ -17,7 +17,6 @@ def scrape_recipe():
         logger.debug(f"Received request: {request.get_data(as_text=True)}")
         logger.debug(f"Request headers: {dict(request.headers)}")
         
-        # Parse JSON data
         try:
             data = request.get_json(force=True)
             logger.debug(f"Parsed JSON data: {data}")
@@ -25,7 +24,6 @@ def scrape_recipe():
             logger.error(f"JSON parsing error: {str(e)}")
             return jsonify({'error': 'Invalid JSON format'}), 400
 
-        # Check for URL
         if not data or 'url' not in data:
             logger.error("No URL provided in request data")
             return jsonify({'error': 'No URL provided'}), 400
@@ -33,7 +31,6 @@ def scrape_recipe():
         url = data['url']
         logger.info(f"Processing URL: {url}")
         
-        # Validate URL
         try:
             result = urlparse(url)
             if not all([result.scheme, result.netloc]):
@@ -43,21 +40,17 @@ def scrape_recipe():
             logger.error(f"URL parsing error: {str(e)}")
             return jsonify({'error': 'Invalid URL'}), 400
 
-        # Fetch HTML content
         logger.info("Fetching recipe page")
         headers = {
             "User-Agent": "Recipe Scraper API (https://github.com/your-username/recipe-api)"
         }
         html = requests.get(url, headers=headers).content
         
-        # Scrape recipe
         logger.info("Starting recipe scrape")
         scraper = scrape_html(html, org_url=url)
         
-        # Extract recipe data with error handling for each method
         recipe_data = {}
         
-        # Required methods (these should always work)
         try:
             recipe_data.update({
                 'title': scraper.title(),
@@ -72,7 +65,6 @@ def scrape_recipe():
             logger.error(f"Error extracting core recipe data: {str(e)}")
             return jsonify({'error': 'Failed to extract core recipe data'}), 500
 
-        # Optional methods (might not be available for all recipes)
         optional_methods = {
             'ingredient_groups': scraper.ingredient_groups,
             'instructions_list': scraper.instructions_list,
@@ -88,7 +80,7 @@ def scrape_recipe():
         for method_name, method in optional_methods.items():
             try:
                 result = method()
-                if result:  # Only add if there's actual data
+                if result:
                     recipe_data[method_name] = result
             except Exception as e:
                 logger.debug(f"Optional method {method_name} not available: {str(e)}")
