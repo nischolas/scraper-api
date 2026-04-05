@@ -1,28 +1,6 @@
 # Flask app based on [hhursev/recipe_scrapers](https://github.com/hhursev/recipe-scrapers)
 
-Create virtual environment
-
-```bash
-python3 -m venv venv
-```
-
-Enter environment
-
-```bash
-source venv/bin/activate
-```
-
-Install dependencies
-
-```bash
-pip3 install -r requirements.txt
-```
-
-Run server
-
-```bash
-python3 app.py
-```
+uv run main.py
 
 Example request
 
